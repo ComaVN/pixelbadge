@@ -12,7 +12,7 @@ New_cells = [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
 
 
 def cell_to_color(cell):
-    return (cell % 0x01000000) << 8 | 0xff
+    return (cell & 0xffffff) << 8 | 0xff
 
 
 def cells_to_image(cells):
@@ -24,7 +24,7 @@ def cells_to_image(cells):
 
 
 def cell_to_led_color(cell):
-    return (cell % 0x01000000) << 8
+    return (cell & 0xffffff) << 8
 
 
 def cells_to_frame(cells, frame):
