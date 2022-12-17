@@ -1,4 +1,3 @@
-import random
 import rgb
 import time
 
@@ -6,8 +5,10 @@ import time
 FRAME_WIDTH = 32
 FRAME_HEIGHT = 8
 Frame = [0 for _ in range(256)]
-FrameNr = 0
-Cells = [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
+Frame_nr = 0
+# [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
+Old_cells = [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
+New_cells = [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
 
 
 def cell_to_color(cell):
@@ -26,34 +27,36 @@ def cell_to_led_color(cell):
     return (cell % 0x01000000) << 8
 
 
-def cells_to_frame(cells):
-    frame = [0 for _ in range(256)]
+def cells_to_frame(cells, frame):
     idx = 0
     for row in cells:
         for cell in row:
             frame[idx] = cell_to_led_color(cell)
             idx += 1
-    return frame
+
 
 def render_frame(delay):
     def fn():
-        global Frame, FrameNr, Cells
-        Cells = next_cells(FrameNr)
-        Frame = cells_to_frame(Cells)
+        global Frame, Frame_nr, Old_cells, New_cells
+        next_cells(Old_cells, New_cells, Frame_nr)
+        cells_to_frame(New_cells, Frame)
         rgb.frame(Frame)
-        FrameNr += 1
+        Frame_nr += 1
+        Old_cells, New_cells = New_cells, Old_cells
         return delay
     return fn
 
+
 # app-specific code:
-
-
-def next_cells(idx):
-    new_cells = [[0 for x in range(FRAME_WIDTH)] for y in range(FRAME_HEIGHT)]
+def next_cells(old_cells, new_cells, frame_nr):
+    color = (
+        (((frame_nr >> 8) & 0x0f) << 20) +  # r
+        (((frame_nr >> 4) & 0x0f) << 12) +  # g
+        ((frame_nr & 0x0f) << 4))
+    print('{:#08x}'.format(color))
     for y in range(FRAME_HEIGHT):
         for x in range(FRAME_WIDTH):
-            new_cells[y][x] = idx*16
-    return new_cells
+            new_cells[y][x] = color
 
 
 rgb.background(
@@ -61,5 +64,5 @@ rgb.background(
 )
 rgb.clear()
 rgb.disablecomp()
-virtualtimers.begin(100)
-virtualtimers.new(0, render_frame(500))
+virtualtimers.begin(10)
+virtualtimers.new(0, render_frame(10))
