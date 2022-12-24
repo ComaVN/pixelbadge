@@ -1,10 +1,13 @@
+import random
 import rgb
+import virtualtimers
 
 # Generally needed code:
 FRAME_WIDTH = 32
 FRAME_HEIGHT = 8
 
 # Note that this is split up to make it easier to copy-paste to the cli
+# Things will probably break if the image heighth is too low (ie. less than twice the frame height)
 tree_img = []
 tree_img += [
     0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0xc2f8e3ff, 0x40a640ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff, 0x000000ff,
@@ -69,47 +72,65 @@ def render(delay):
     tree_img_height = len(tree_img) // tree_img_width
     img_pos_y = FRAME_HEIGHT
     img_pos_y_speed = -1
-    txt_pos_x = 0
+    txt_pos_x = 1
     top_txt = 'Welcome'
     top_txt_width = rgb.textwidth(top_txt)
     bottom_txt = 'Dear Guests'
     bottom_txt_width = rgb.textwidth(bottom_txt)
-
+    sparkle_pos = None
+    sparkle_color = None
     def fn():
-        nonlocal img_pos_y, img_pos_y_speed, txt_pos_x
+        nonlocal img_pos_y, img_pos_y_speed, txt_pos_x, sparkle_pos, sparkle_color
         rgb.clear()
-        rgb.text(top_txt, pos=(txt_pos_x, img_pos_y - FRAME_HEIGHT))
-        rgb.image(tree_img, pos=(0, img_pos_y), size=(
-            tree_img_width, tree_img_height))
-        rgb.text(bottom_txt, pos=(txt_pos_x, tree_img_height + img_pos_y))
+        rgb.image(tree_img, pos=(0, img_pos_y), size=(tree_img_width, tree_img_height))
+        # check if we need to render text
+        if img_pos_y > 1:
+            rgb.text(top_txt, pos=(txt_pos_x, img_pos_y - FRAME_HEIGHT))
+        elif img_pos_y <= -tree_img_height + FRAME_HEIGHT - 1:
+            rgb.text(bottom_txt, pos=(txt_pos_x, tree_img_height + img_pos_y))
+        else:
+            # no text visible, reset x offset to 1
+            txt_pos_x = 1
+        # check if we're at the top or bottom
         if img_pos_y >= FRAME_HEIGHT:
             # at the top, so check if text needs to be scrolled
-            if top_txt_width + txt_pos_x > FRAME_WIDTH:
+            if top_txt_width + txt_pos_x + 2 > FRAME_WIDTH:
                 # top text doesn't fit, so scroll it before moving down again
                 img_pos_y_speed = 0
                 txt_pos_x -= 1
             else:
                 img_pos_y_speed = -1
-                if txt_pos_x < 0:
-                    txt_pos_x += 1
         elif img_pos_y <= -tree_img_height:
             # at the bottom, so check if text needs to be scrolled
-            if bottom_txt_width + txt_pos_x > FRAME_WIDTH:
+            if bottom_txt_width + txt_pos_x + 2 > FRAME_WIDTH:
                 # bottom text doesn't fit, so scroll it before moving up again
                 img_pos_y_speed = 0
                 txt_pos_x -= 1
             else:
                 img_pos_y_speed = 1
-                if txt_pos_x < 0:
-                    txt_pos_x += 1
-        else:
-            # somehere in the middle, so scroll the text back, if needed
-            if txt_pos_x < 0:
-                txt_pos_x += 1
         img_pos_y += img_pos_y_speed
+        # render the sparkle
+        if sparkle_pos is None:
+            if random.randrange(3) == 0:
+                # create a new random sparkle
+                sparkle_pos = (
+                    random.randrange(1, FRAME_WIDTH - 1),
+                    random.randrange(1, FRAME_HEIGHT - 1),
+                )
+                sparkle_color = (0x00, 0x40, 0xc0)
+                rgb.pixel(sparkle_color, sparkle_pos)
+        else:
+            # second from of sparkle
+            rgb.pixel((0xff, 0xff, 0xff), sparkle_pos)
+            rgb.pixel(sparkle_color, (sparkle_pos[0] - 1, sparkle_pos[1])) # left
+            rgb.pixel(sparkle_color, (sparkle_pos[0] + 1, sparkle_pos[1])) # right
+            rgb.pixel(sparkle_color, (sparkle_pos[0], sparkle_pos[1] - 1)) # above
+            rgb.pixel(sparkle_color, (sparkle_pos[0], sparkle_pos[1] + 1)) # below
+            sparkle_pos = None
+            sparkle_color = None
         return delay
     return fn
 
 
-virtualtimers.begin(100)
-virtualtimers.new(0, render(200))
+virtualtimers.begin(50)
+virtualtimers.new(0, render(50))
