@@ -1,3 +1,4 @@
+import appconfig
 import random
 import rgb
 import virtualtimers
@@ -67,15 +68,15 @@ tree_img += [
 ]
 
 
-def render(delay):
+def render(settings):
     tree_img_width = 32
     tree_img_height = len(tree_img) // tree_img_width
     img_pos_y = FRAME_HEIGHT
     img_pos_y_speed = -1
     txt_pos_x = 1
-    top_txt = 'Welcome'
+    top_txt = settings['top_txt']
     top_txt_width = rgb.textwidth(top_txt)
-    bottom_txt = 'Dear Guests'
+    bottom_txt = settings['bottom_txt']
     bottom_txt_width = rgb.textwidth(bottom_txt)
     sparkle_pos = None
     sparkle_color = None
@@ -128,9 +129,14 @@ def render(delay):
             rgb.pixel(sparkle_color, (sparkle_pos[0], sparkle_pos[1] + 1)) # below
             sparkle_pos = None
             sparkle_color = None
-        return delay
+        return settings['frame_delay']
     return fn
 
 
-virtualtimers.begin(50)
-virtualtimers.new(0, render(50))
+settings = appconfig.get('christmas_welcome', {
+    'top_txt': 'Welcome',
+    'bottom_txt': 'Dear Guests!',
+    'frame_delay': 50,
+})
+virtualtimers.begin(settings['frame_delay'])
+virtualtimers.new(0, render(settings))
