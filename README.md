@@ -1,6 +1,8 @@
 # Curious Supplies Pixel Badge Sandbox
 
-The udev rule I use to make a `/dev/pixelbadge` alias (works on Ubuntu 22.04.1 LTS "yammy"):
+## Serial console
+
+The udev rule I use to make a `/dev/pixelbadge` alias:
 ```
 $ cat /etc/udev/rules.d/99-local-rh.pixel-badge.rules
 # Curious Supplies Pixel Badge
@@ -9,9 +11,20 @@ $ cat /etc/udev/rules.d/99-local-rh.pixel-badge.rules
 KERNEL=="ttyUSB[0-9]", SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666", SYMLINK+="pixelbadge"
 ```
 
+(verified to work on Ubuntu 22.04.1 LTS "yammy" and 23.10 "Mantic Minotaur")
+
 To connect:
 ```
 screen /dev/pixelbadge 115200
 ```
 
 To disconnect, press `Ctrl`-`A` followed by `k`
+
+## Web GUI
+
+The [web GUI](https://webserial.curious.supplies/#/) allows you to install apps, update the device, and set appconfig values. It needs a browser that supports WebSerial, like Chrome.
+
+If you're running eg. Chromium using snap, you might need to allow access to USB to see any TTYs:
+```
+sudo snap connect chromium:raw-usb
+```
