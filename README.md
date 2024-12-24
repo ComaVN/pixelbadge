@@ -11,7 +11,7 @@ $ cat /etc/udev/rules.d/99-local-rh.pixel-badge.rules
 KERNEL=="ttyUSB[0-9]", SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", MODE="0666", SYMLINK+="pixelbadge"
 ```
 
-(verified to work on Ubuntu 22.04.1 LTS "yammy" and 23.10 "Mantic Minotaur")
+(verified to work on Ubuntu 22.04.1 LTS "yammy", 23.10 "Mantic Minotaur" and 24.04.1 LTS "Noble Numbat")
 
 To connect:
 ```
